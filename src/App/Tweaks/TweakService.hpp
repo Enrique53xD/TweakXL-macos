@@ -26,12 +26,11 @@ public:
     bool RegisterTweak(std::filesystem::path aPath);
     bool RegisterDirectory(std::filesystem::path aPath);
 
-    void LoadTweaks();
+    void LoadTweaks(bool aCheckForIssues);
     void ImportTweaks();
     void ExecuteTweaks();
     void ExecuteTweak(Red::CName aName);
     void CheckForIssues();
-    void ReportUsage();
 
     bool ImportMetadata();
     void ExportMetadata();

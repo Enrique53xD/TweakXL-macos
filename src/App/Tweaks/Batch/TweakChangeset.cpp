@@ -498,23 +498,12 @@ void App::TweakChangeset::Commit(const Core::SharedPtr<Red::TweakDBManager>& aMa
                 }
             }
 
-            const auto result = aManager->SetFlat(batch, flatId, flatType, flatValue);
+            const auto success = aManager->SetFlat(batch, flatId, flatType, flatValue);
 
-            if (result != Red::TweakDBManager::Result::OK)
+            if (!success)
             {
-                switch (result)
-                {
-                case Red::TweakDBManager::Result::Unallocated:
-                    LogError("Cannot allocate data for flat {}. Terminating.", aManager->GetName(flatId));
-                    ExitProcess(1);
-                    break;
-                case Red::TweakDBManager::Result::InvalidType:
-                    LogError("Cannot assign value for flat {}, incompatible type {}.", aManager->GetName(flatId),
-                             flatType->GetName().ToString());
-                    break;
-                default:
-                    LogError("Cannot assign value for flat {}.", aManager->GetName(flatId));
-                }
+                LogError("Can't assign flat {}.", aManager->GetName(flatId));
+                continue;
             }
         }
 
@@ -529,6 +518,7 @@ void App::TweakChangeset::Commit(const Core::SharedPtr<Red::TweakDBManager>& aMa
                 if (!success)
                 {
                     LogError("Cannot clone record {} from {}.", aManager->GetName(recordId), aManager->GetName(entry.sourceId));
+                    continue;
                 }
             }
         }
@@ -733,23 +723,12 @@ void App::TweakChangeset::Commit(const Core::SharedPtr<Red::TweakDBManager>& aMa
             }
         }
 
-        const auto result = aManager->SetFlat(flatId, targetType, targetArray.get());
+        const auto success = aManager->SetFlat(flatId, targetType, targetArray.get());
 
-        if (result != Red::TweakDBManager::Result::OK)
+        if (!success)
         {
-            switch (result)
-            {
-            case Red::TweakDBManager::Result::Unallocated:
-                LogError("Cannot allocate data for flat {}. Terminating.", aManager->GetName(flatId));
-                ExitProcess(1);
-                break;
-            case Red::TweakDBManager::Result::InvalidType:
-                LogError("Cannot assign value for flat {}, incompatible type {}.", aManager->GetName(flatId),
-                         targetType->GetName().ToString());
-                break;
-            default:
-                LogError("Cannot assign value for flat {}.", aManager->GetName(flatId));
-            }
+            LogError("Cannot assign flat value {}.", aManager->GetName(flatId));
+            continue;
         }
 
         if (aChangelog)

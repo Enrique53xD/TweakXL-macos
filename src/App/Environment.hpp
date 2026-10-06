@@ -1,12 +1,19 @@
 #pragma once
 
 #include "Core/Facades/Runtime.hpp"
+#include <stdexcept>
 
 namespace App::Env
 {
 inline auto GameDir()
 {
-    return Core::Runtime::GetRootDir();
+    auto dir = Core::Runtime::GetRootDir();
+    // Every directory this plugin touches must be absolute; a relative one would silently resolve against the cwd.
+    if (dir.empty() || !dir.is_absolute())
+    {
+        throw std::runtime_error("TweakXL: refusing to use a non-absolute game directory: '" + dir.string() + "'");
+    }
+    return dir;
 }
 
 inline auto TweaksDir()

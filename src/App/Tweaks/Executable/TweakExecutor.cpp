@@ -27,6 +27,12 @@ void App::TweakExecutor::ExecuteTweaks()
 {
     try
     {
+#ifdef __APPLE__
+        // macOS port: the ScriptableTweak class is only registered once the plugin's RTTI types are, which is not wired
+        // up yet. With a null filter GetClasses() returns every class in the game, so bail out instead.
+        if (!m_rtti->GetClass(Red::CName("ScriptableTweak")))
+            return;
+#endif
         Red::DynArray<Red::CClass*> tweakClasses;
         m_rtti->GetClasses(s_scriptableTweakType, tweakClasses);
 

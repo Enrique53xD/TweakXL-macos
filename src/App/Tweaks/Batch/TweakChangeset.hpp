@@ -105,9 +105,15 @@ private:
     void StartAsyncCommitJob(J&& aJob)
     {
         StartCommitJob();
+#ifdef __APPLE__
+        // macOS port: the game's job queue is not located yet, so run the job right here (same result, no parallelism).
+        aJob();
+        FinishCommitJob();
+#else
         Red::JobQueue jobQueue;
         jobQueue.Dispatch(std::forward<J>(aJob));
         jobQueue.Dispatch([self = ToShared()]{ self->FinishCommitJob(); });
+#endif
     }
 
     static int32_t FindElement(const Red::CRTTIArrayType* aArrayType, void* aArray, void* aValue);

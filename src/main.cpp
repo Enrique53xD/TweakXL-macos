@@ -8,7 +8,7 @@ namespace
 Core::UniquePtr<App::Application> g_app;
 }
 
-// RED4ext
+// RED4ext plugin entry points
 
 RED4EXT_C_EXPORT bool RED4EXT_CALL Main(RED4ext::v1::PluginHandle aHandle, RED4ext::v1::EMainReason aReason,
                                         const RED4ext::v1::Sdk* aSdk)
@@ -17,6 +17,11 @@ RED4EXT_C_EXPORT bool RED4EXT_CALL Main(RED4ext::v1::PluginHandle aHandle, RED4e
     {
     case RED4ext::v1::EMainReason::Load:
     {
+#ifdef __APPLE__
+        // macOS port: RED4ext calls Main(Load) twice for the same plugin; a second Application would destroy the first.
+        if (g_app)
+            break;
+#endif
         g_app = Core::MakeUnique<App::Application>(aHandle, aSdk);
         g_app->Bootstrap();
         break;
@@ -49,8 +54,8 @@ RED4EXT_C_EXPORT uint32_t RED4EXT_CALL Supports()
     return RED4EXT_API_VERSION_1_COMPAT_0;
 }
 
-// ASI
-
+#ifndef __APPLE__
+// Windows ASI loader entry point — not used on macOS.
 BOOL APIENTRY DllMain(HMODULE aHandle, DWORD aReason, LPVOID)
 {
     using GameMain = Core::RawFunc<Red::AddressLib::Main, int32_t (*)(HINSTANCE hInstance, HINSTANCE hPrevInstance,
@@ -59,7 +64,7 @@ BOOL APIENTRY DllMain(HMODULE aHandle, DWORD aReason, LPVOID)
     static const bool s_isGame = Core::Runtime::IsEXE(L"Cyberpunk2077.exe");
     static const bool s_isASI = Core::Runtime::IsASI(aHandle);
 
-    switch (aReason) // NOLINT(hicpp-multiway-paths-covered)
+    switch (aReason)
     {
     case DLL_PROCESS_ATTACH:
     {
@@ -88,3 +93,4 @@ BOOL APIENTRY DllMain(HMODULE aHandle, DWORD aReason, LPVOID)
 
     return TRUE;
 }
+#endif // __APPLE__

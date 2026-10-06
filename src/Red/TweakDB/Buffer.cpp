@@ -323,11 +323,10 @@ void Red::TweakDBBuffer::UpdateStats(float updateTime)
     for (const auto& pool : m_pools)
         totalValues += pool.second.size();
 
-    m_stats.bufferSize = m_offsetEnd;
+    m_stats.poolSize = m_offsetEnd;
     m_stats.poolValues = totalValues;
     m_stats.knownTypes = m_types.size();
     m_stats.flatEntries = m_tweakDb->flats.size;
-    m_stats.recordEntries = m_tweakDb->recordsByID.size;
 
 #ifdef VERBOSE
     Red::Log::Debug(
@@ -338,11 +337,8 @@ void Red::TweakDBBuffer::UpdateStats(float updateTime)
 #endif
 }
 
-const Red::TweakDBBuffer::BufferStats& Red::TweakDBBuffer::GetStats()
+Red::TweakDBBuffer::BufferStats Red::TweakDBBuffer::GetStats() const
 {
-    if (m_bufferEnd != m_tweakDb->flatDataBufferEnd)
-        SyncBufferData();
-
     return m_stats;
 }
 

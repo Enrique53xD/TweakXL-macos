@@ -13,12 +13,10 @@ public:
     {
         float initTime = 0.0; // ms
         float updateTime = 0.0; // ms
-        size_t bufferSize = 0; // bytes
-        size_t bufferMaxSize = TweakDB::MaxFlatDataBufferSize; // bytes
+        size_t poolSize = 0; // bytes
         size_t poolValues = 0;
         size_t knownTypes = 0;
         size_t flatEntries = 0;
-        size_t recordEntries = 0;
     };
 
     TweakDBBuffer();
@@ -32,7 +30,7 @@ public:
     Red::Instance GetValuePtr(int32_t aOffset);
     uint64_t GetValueHash(int32_t aOffset);
 
-    [[nodiscard]] const BufferStats& GetStats();
+    [[nodiscard]] BufferStats GetStats() const;
 
     void Invalidate();
 

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Core/Win.hpp"
 #include "Core/Foundation/Application.hpp"
 #include "Core/Logging/LoggingAgent.hpp"
 

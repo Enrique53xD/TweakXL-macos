@@ -14,7 +14,7 @@ bool s_statTypesModified = false;
 
 void App::StatService::OnBootstrap()
 {
-    HookAfter<Raw::StatsDataSystem::InitializeRecords>(&OnInitializeStats).OrThrow();
+    HookAfter<Raw::StatsDataSystem::InitializeRecords>(&OnInitializeStats);
 }
 
 void App::StatService::OnInitializeStats(void* aSystem)

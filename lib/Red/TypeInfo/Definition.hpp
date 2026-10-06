@@ -1026,6 +1026,10 @@ struct ClassDefinition
     static inline void RegisterType()
     {
         constexpr auto name = GetTypeNameStr<TClass>();
+#ifdef __APPLE__
+        if (Detail::IsSkippedType(name.data()))
+            return;
+#endif
 
         auto* type = Red::Memory::RTTIAllocator::Get()->Alloc<Descriptor>();
         new (type) Descriptor();

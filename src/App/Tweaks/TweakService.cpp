@@ -1,4 +1,5 @@
 #include "TweakService.hpp"
+#include <mach-o/dyld.h>
 #include "App/Tweaks/Declarative/TweakImporter.hpp"
 #include "App/Tweaks/Executable/TweakExecutor.hpp"
 #include "App/Tweaks/Metadata/MetadataExporter.hpp"
@@ -22,6 +23,34 @@ void App::TweakService::OnBootstrap()
 {
     CreateTweaksDir();
 
+#ifdef __APPLE__
+    // macOS port: the game has no TryLoad wrapper. TweakDB::LoadOptimized asserts on failure, so reaching the end of it
+    // means success. (Raw::TryLoadTweakDB / InitTweakDB are not located on macOS.)
+    HookAfter<Raw::LoadTweakDB>([&]() {
+        const bool aSuccess = true;
+        if (aSuccess)
+        {
+            m_reflection = Core::MakeShared<Red::TweakDBReflection>();
+            m_manager = Core::MakeShared<Red::TweakDBManager>(m_reflection);
+            m_context = Core::MakeShared<App::TweakContext>(m_productVer);
+            m_importer = Core::MakeShared<App::TweakImporter>(m_manager, m_context);
+            m_executor = Core::MakeShared<App::TweakExecutor>(m_manager);
+            m_changelog = Core::MakeShared<App::TweakChangelog>();
+            if (ImportMetadata())
+            {
+                EnsureRuntimeAccess();
+                ApplyPatches();
+                LoadTweaks(false);
+            }
+            else
+            {
+            }
+            CheckForIssues();
+        }
+    }).OrThrow();
+}
+
+#else
     HookAfter<Raw::TryLoadTweakDB>([&](bool& aSuccess) {
         if (aSuccess)
         {
@@ -32,14 +61,11 @@ void App::TweakService::OnBootstrap()
             m_executor = Core::MakeShared<App::TweakExecutor>(m_manager);
             m_changelog = Core::MakeShared<App::TweakChangelog>();
 
-            ReportUsage();
-
             if (ImportMetadata())
             {
                 EnsureRuntimeAccess();
                 ApplyPatches();
-                LoadTweaks();
-                ReportUsage();
+                LoadTweaks(false);
             }
         }
     });
@@ -49,13 +75,19 @@ void App::TweakService::OnBootstrap()
         CheckForIssues();
     });
 }
+#endif
 
-void App::TweakService::LoadTweaks()
+void App::TweakService::LoadTweaks(bool aCheckForIssues)
 {
     if (m_manager)
     {
         m_importer->ImportTweaks(m_importPaths, m_changelog);
         m_executor->ExecuteTweaks();
+
+        if (aCheckForIssues)
+        {
+            m_changelog->CheckForIssues(m_manager);
+        }
     }
 }
 
@@ -105,21 +137,6 @@ void App::TweakService::CheckForIssues()
     if (m_manager && m_changelog)
     {
         m_changelog->CheckForIssues(m_manager);
-    }
-}
-
-void App::TweakService::ReportUsage()
-{
-    if (m_manager)
-    {
-        auto stats = m_manager->GetBuffer()->GetStats();
-
-        LogDebug("TweakDB contains {} records and {} flats.", stats.recordEntries, stats.flatEntries);
-        LogDebug("TweakDB buffer is used at {:.3f} MiB / {:.0f} MiB ({:.1f}%) with {} pooled values.",
-                 static_cast<float>(stats.bufferSize) / (1024 * 1024),
-                 static_cast<float>(stats.bufferMaxSize) / (1024 * 1024),
-                 static_cast<float>(stats.bufferSize) / static_cast<float>(stats.bufferMaxSize) * 100.0f,
-                 stats.poolValues);
     }
 }
 

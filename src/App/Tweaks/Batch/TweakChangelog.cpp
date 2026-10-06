@@ -108,11 +108,6 @@ void App::TweakChangelog::ForgetResourcePaths()
 
 void App::TweakChangelog::CheckForIssues(const Core::SharedPtr<Red::TweakDBManager>& aManager)
 {
-    for (const auto& conflict : aManager->GetConflicts() | std::views::values)
-    {
-        LogWarning("{} has hash collision with {}.", conflict.first, conflict.second);
-    }
-
     {
         Core::Map<Red::TweakDBID, Core::Set<Red::TweakDBID>> brokenRefs;
 
@@ -138,6 +133,7 @@ void App::TweakChangelog::CheckForIssues(const Core::SharedPtr<Red::TweakDBManag
         }
     }
 
+#ifndef __APPLE__ // macOS port: the resource depot singleton getter is not located (warnings only)
     {
         Core::Set<Red::TweakDBID> brokenRefIds;
 
@@ -155,6 +151,7 @@ void App::TweakChangelog::CheckForIssues(const Core::SharedPtr<Red::TweakDBManag
             LogWarning("{} refers to a non-existent resource.", aManager->GetName(flatId));
         }
     }
+#endif
 }
 
 void App::TweakChangelog::RevertChanges(const Core::SharedPtr<Red::TweakDBManager>& aManager)
@@ -235,9 +232,9 @@ void App::TweakChangelog::RevertChanges(const Core::SharedPtr<Red::TweakDBManage
             elementType->Assign(arrayType->GetElement(restoredArray.get(), deletionIndex), deletionValue.get());
         }
 
-        const auto result = aManager->SetFlat(flatId, arrayType, restoredArray.get());
+        const auto success = aManager->SetFlat(flatId, arrayType, restoredArray.get());
 
-        if (result != Red::TweakDBManager::Result::OK)
+        if (!success)
         {
             LogError("Cannot restore {}, failed to assign the value.", aManager->GetName(flatId));
             continue;
@@ -260,9 +257,9 @@ void App::TweakChangelog::RevertChanges(const Core::SharedPtr<Red::TweakDBManage
             continue;
         }
 
-        const auto result = aManager->SetFlat(flatId, flatData.type, assignment.previous);
+        const auto success = aManager->SetFlat(flatId, flatData.type, assignment.previous);
 
-        if (result != Red::TweakDBManager::Result::OK)
+        if (!success)
         {
             LogError("Cannot restore {}, failed to assign the value.", aManager->GetName(flatId));
             continue;

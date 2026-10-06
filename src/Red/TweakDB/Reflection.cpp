@@ -672,9 +672,15 @@ const Core::Set<Red::TweakDBID>& Red::TweakDBReflection::GetOriginalDescendants(
 
 std::string Red::TweakDBReflection::ToString(Red::TweakDBID aID)
 {
+#ifdef __APPLE__
+    // macOS port: invoking RTTI functions (CBaseFunction::InternalExecute) is not located yet. This is only used for
+    // messages, so fall back to the raw id: <crc32>:<length>.
+    return std::format("<tdbid {:08X}:{}>", aID.name.hash, static_cast<uint32_t>(aID.name.length));
+#else
     Red::CString str;
     Red::CallStatic("gamedataTDBIDHelper", "ToStringDEBUG", str, aID);
     return {str.c_str(), str.Length()};
+#endif
 }
 
 Red::TweakDB* Red::TweakDBReflection::GetTweakDB()

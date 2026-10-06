@@ -46,12 +46,7 @@ void App::Facade::ExportMetadata()
 
 void App::Facade::Reload()
 {
-    if (auto service = Core::Resolve<TweakService>())
-    {
-        service->LoadTweaks();
-        service->ReportUsage();
-        service->CheckForIssues();
-    }
+    Core::Resolve<TweakService>()->LoadTweaks(true);
 }
 
 bool App::Facade::Require(Red::CString& aVersion)

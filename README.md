@@ -1,3 +1,14 @@
+# TweakXL-macos (macOS port)
+
+Apple Silicon port of the upstream project, built on [RED4ext-macos](https://github.com/Enrique53xD/RED4ext-macos). See [cp2077-macos-tools](https://github.com/Enrique53xD/cp2077-macos-tools) for the full install guide.
+
+**Build:** clone next to `RED4ext-macos` and `ArchiveXL-macos`, then `mkdir build && cd build && cmake .. && make -j8`, `codesign -f -s - TweakXL.dylib`.
+**Install:** copy the dylib to `<game>/red4ext/plugins/TweakXL/` with an empty `rtti_experiment` file beside it.
+**Status:** loads and runs on macOS. Uses the patched SDK from `../ArchiveXL-macos/vendor/RED4ext.SDK`.
+Original README below.
+
+---
+
 # TweakXL
 
 TweakXL is a modding tool and a framework to create mods that modify TweakDB, 
