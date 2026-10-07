@@ -28,6 +28,11 @@ RED4EXT_C_EXPORT bool RED4EXT_CALL Main(RED4ext::v1::PluginHandle aHandle, RED4e
     }
     case RED4ext::v1::EMainReason::Unload:
     {
+#ifdef __APPLE__
+        // macOS port: Unload also arrives twice (see Load); the second one finds no application.
+        if (!g_app)
+            break;
+#endif
         g_app->Shutdown();
         g_app = nullptr;
         break;
